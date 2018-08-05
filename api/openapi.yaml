@@ -1,0 +1,701 @@
+openapi: 3.0.0
+info:
+  contact:
+    name: Devicelink
+    url: https://devicelink.io
+  description: |
+    Manages devices through Devicelink.
+servers:
+- url: /
+paths:
+  /v1/groups:
+    get:
+      description: Returns all groups with devices and metadata.
+      operationId: devicelink.getGroups
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupInfo'
+          description: List of groups
+      summary: Gets device groups.
+    post:
+      description: Creates virtual group for devices. Request can include list of devices as request-body or attributes.
+      operationId: devicelink.createGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body'
+        description: List of devices
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201'
+          description: Group created
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Creates a device group.
+  /v1/groups/{group_id}/device/{id}:
+    delete:
+      description: Removes a device from a group.
+      operationId: devicelink.removeDeviceFromGroup
+      parameters:
+      - description: uuid of group
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Device removed from group
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Removes device from a group.
+    put:
+      description: Adds a device to a group.
+      operationId: devicelink.addDeviceToGroup
+      parameters:
+      - description: uuid of group
+        explode: false
+        in: path
+        name: group_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Device added to group.
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Adds device to group.
+  /v1/groups/{id}:
+    delete:
+      description: Deletes group and its metadata.
+      operationId: devicelink.deleteGroup
+      parameters:
+      - description: uuid of group
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Group deleted
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Deletes a group.
+    get:
+      description: Returns a group, members, and metadata.
+      operationId: devicelink.getGroupInfo
+      parameters:
+      - description: uuid of group
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupInfo'
+          description: Group information
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Gets a device group.
+    patch:
+      description: Updates group metadata.
+      operationId: devicelink.updateGroupMetadata
+      parameters:
+      - description: uuid of group
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body_1'
+        description: New metadata of group
+      responses:
+        200:
+          description: Group's metedata updated
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Updates group information.
+  /v1/device/{id}/properties:
+    get:
+      description: Returns properties for a device.
+      operationId: devicelink.getData
+      parameters:
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: Start time in seconds since epoch
+        explode: true
+        in: query
+        name: from
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: End time in seconds since epoch
+        explode: true
+        in: query
+        name: to
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: The start key of the first property object to return
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: Order in which roperty objects are returned
+        explode: true
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: desc
+          enum:
+          - asc
+          - desc
+          type: string
+        style: form
+      - description: Limits the number of returned property objects
+        explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          default: 100
+          format: int32
+          maximum: 50000
+          minimum: 0
+          type: integer
+        style: form
+      - description: Filters returned property objects by property-key
+        explode: true
+        in: query
+        name: property-key
+        required: false
+        schema:
+          format: int32
+          maximum: 255
+          minimum: 0
+          type: integer
+        style: form
+      - description: Filters returned property objects by property-index (can only be used in combination with property-key parameter)
+        explode: true
+        in: query
+        name: index
+        required: false
+        schema:
+          format: int32
+          maximum: 255
+          minimum: 0
+          type: integer
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceData'
+          description: List of device properties
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Gets device properties.
+  /v1/device/{id}/events:
+    get:
+      description: Opens event-stream for a device.
+      operationId: devicelink.getDeviceEvent
+      parameters:
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            text/event-stream:
+              schema:
+                type: object
+          description: Event-stream established
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Gets device events.
+  /v1/device/{id}/actions:
+    get:
+      description: Returns device actions within a time range.
+      operationId: devicelink.getActions
+      parameters:
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: Range start in seconds since epoch
+        explode: true
+        in: query
+        name: from
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: Range end in seconds since epoch
+        explode: true
+        in: query
+        name: to
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: The start key of the first action object to return,
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: If set to asc (default), action objects are returned in time ascending order (i.e. starting with from or start and ending with stop). If set to desc, action objects are returned in time descending order (i.e. starting with to or start and ending with from).
+        explode: true
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: desc
+          enum:
+          - asc
+          - desc
+          type: string
+        style: form
+      - description: Limits the number of returned action objects
+        explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          default: 100
+          format: int32
+          maximum: 50000
+          minimum: 0
+          type: integer
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: List of action information
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Gets device actions.
+    post:
+      description: Prompts an action on a device.
+      operationId: devicelink.doAction
+      parameters:
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body_2'
+        description: Action that shall be executed
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201_1'
+          description: action-id
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Prompts a device action.
+  /v1/device/{id}/actions/{action-id}:
+    get:
+      description: Returns a action of device.
+      operationId: devicelink.getSpecificAction
+      parameters:
+      - description: uuid of device
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: Action key
+        explode: false
+        in: path
+        name: action-id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          description: Action information
+        400:
+          description: Bad input parameter
+        403:
+          description: Unauthorized
+      summary: Gets a device action.
+components:
+  schemas:
+    GroupInfo:
+      example:
+        metadata: '{}'
+        devices:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        permissions: read_only
+        time: 0
+      properties:
+        time:
+          format: int32
+          type: integer
+        metadata:
+          type: object
+        devices:
+          items:
+            format: uuid
+            type: string
+          type: array
+        permissions:
+          enum:
+          - read_only
+          - write
+          - owner
+          type: string
+      type: object
+    DeviceInfo:
+      properties:
+        time:
+          format: int32
+          type: integer
+        id:
+          format: int32
+          type: integer
+        model:
+          $ref: '#/components/schemas/DeviceInfo_model'
+        serial-number:
+          type: string
+        firmware:
+          type: string
+        metadata:
+          type: object
+        activityout:
+          format: int32
+          type: integer
+        freshness-window:
+          format: int32
+          type: integer
+        last-rcv:
+          format: int32
+          type: integer
+        permissions:
+          enum:
+          - read_only
+          - write
+          - owner
+          type: string
+      type: object
+    DeviceData:
+      example:
+        sensor:
+          value: ""
+          key: ""
+      properties:
+        sensor:
+          $ref: '#/components/schemas/DeviceData_sensor'
+      type: object
+    DeviceProperties:
+      properties:
+        status:
+          $ref: '#/components/schemas/DeviceProperties_status'
+      type: object
+    body:
+      properties:
+        metadata:
+          type: object
+        devices:
+          items:
+            format: uuid
+            type: string
+          type: array
+      required:
+      - devices
+      - metadata
+      type: object
+    inline_response_201:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          type: string
+    body_1:
+      properties:
+        metadata:
+          type: object
+      type: object
+    body_2:
+      properties:
+        0:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+        3:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+      type: object
+    inline_response_201_1:
+      example:
+        action-id: 0
+      properties:
+        action-id:
+          format: int32
+          type: integer
+    inline_response_200_values:
+      example:
+        0: ""
+      properties:
+        0:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+    inline_response_200:
+      example:
+        values:
+          0: ""
+        ack: 0
+        do: 6
+        status: acked
+      properties:
+        status:
+          enum:
+          - acked
+          - unknown
+          type: string
+        ack:
+          format: int32
+          type: integer
+        do:
+          format: int32
+          type: integer
+        values:
+          $ref: '#/components/schemas/inline_response_200_values'
+    DeviceInfo_model_stream:
+      properties:
+        key:
+          format: int32
+          type: integer
+        read-only:
+          type: boolean
+        time:
+          format: int32
+          type: integer
+        last-value:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+    DeviceInfo_model:
+      properties:
+        stream:
+          $ref: '#/components/schemas/DeviceInfo_model_stream'
+    DeviceData_sensor:
+      example:
+        value: ""
+        key: ""
+      properties:
+        key:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+        value:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+    DeviceProperties_status_topic:
+      properties:
+        id:
+          format: uuid
+          type: string
+        consumer-group-index:
+          format: int32
+          maximum: 16
+          minimum: 1
+          type: integer
+    DeviceProperties_status_predicate:
+      properties:
+        operation:
+          enum:
+          - match
+          - no_match
+          - equal
+          - more
+          - less
+          - between
+          - inherit
+          - is_present
+          type: string
+        locked:
+          type: boolean
+        test-property-index:
+          format: int32
+          maximum: 255
+          minimum: 0
+          type: integer
+        ref-values:
+          items:
+            oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: object
+          type: array
+    DeviceProperties_status_actions:
+      properties:
+        0:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+        3:
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: object
+    DeviceProperties_status:
+      properties:
+        topic:
+          $ref: '#/components/schemas/DeviceProperties_status_topic'
+        predicate:
+          $ref: '#/components/schemas/DeviceProperties_status_predicate'
+        actions:
+          $ref: '#/components/schemas/DeviceProperties_status_actions'
+        status:
+          enum:
+          - acked
+          - unknown
+          type: string
